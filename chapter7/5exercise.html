@@ -1,0 +1,476 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>chapter7练习 &mdash; uCore-Tutorial-Book-v2 0.1 文档</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script kind="utterances">
+
+    var commentsRunWhenDOMLoaded = cb => {
+    if (document.readyState != 'loading') {
+        cb()
+    } else if (document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', cb)
+    } else {
+        document.attachEvent('onreadystatechange', function() {
+        if (document.readyState == 'complete') cb()
+        })
+    }
+}
+
+var addUtterances = () => {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = "https://utteranc.es/client.js";
+    script.async = "async";
+
+    script.setAttribute("repo", "rcore-os/rCore-Tutorial-Book-v3");
+    script.setAttribute("issue-term", "pathname");
+    script.setAttribute("theme", "github-light");
+    script.setAttribute("label", "comments");
+    script.setAttribute("crossorigin", "anonymous");
+
+    sections = document.querySelectorAll("div.section");
+    if (sections !== null) {
+        section = sections[sections.length-1];
+        section.appendChild(script);
+    }
+}
+commentsRunWhenDOMLoaded(addUtterances);
+</script>
+        <script src="../_static/translations.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="next" title="第八章：拓展实验" href="../chapter8/index.html" />
+    <link rel="prev" title="nfs文件系统" href="2fs-implementation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> uCore-Tutorial-Book-v2
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="在文档中搜索" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">Part1 - Just do it!</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../chapter0/index.html">第零章：实验环境搭建</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter1/index.html">第一章：应用程序与基本执行环境</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter2/index.html">第二章：批处理系统</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter3/index.html">第三章：多道程序与分时多任务</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter4/index.html">第四章：地址空间</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter5/index.html">第五章：进程及进程管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter6/index.html">第六章：进程间通信</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">第七章：文件系统与I/O重定向</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="0intro.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1fs-interface.html">文件系统接口</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2fs-implementation.html">nfs文件系统</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">chapter7练习</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">本章任务</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">编程作业</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id3">硬链接</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tips">Tips</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#id7">问答作业</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id8">报告要求</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter8/index.html">第八章：拓展实验</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发注记</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../setup-sphinx.html">修改和构建本项目</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rest-example.html">reStructuredText 基本语法</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">uCore-Tutorial-Book-v2</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">第七章：文件系统与I/O重定向</a> &raquo;</li>
+        
+      <li>chapter7练习</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/chapter7/5exercise.rst.txt" rel="nofollow"> 查看页面源码</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="chapter7">
+<h1>chapter7练习<a class="headerlink" href="#chapter7" title="永久链接至标题">¶</a></h1>
+<ul class="simple">
+<li><p>本节难度： <strong>理解文件系统比较费事，编程难度适中</strong></p></li>
+</ul>
+<div class="section" id="id1">
+<h2>本章任务<a class="headerlink" href="#id1" title="永久链接至标题">¶</a></h2>
+<ul class="simple">
+<li><p>ch7b_usertest</p></li>
+<li><p>merge ch6 的改动，然后再次测试 ch6_usertest 和 ch7b_usertest。</p></li>
+<li><p>完成本章问答作业。</p></li>
+<li><p>完成本章编程作业。</p></li>
+<li><p>最终，完成实验报告并 push 你的 ch7 分支到远程仓库。</p></li>
+</ul>
+</div>
+<div class="section" id="id2">
+<h2>编程作业<a class="headerlink" href="#id2" title="永久链接至标题">¶</a></h2>
+<div class="section" id="id3">
+<h3>硬链接<a class="headerlink" href="#id3" title="永久链接至标题">¶</a></h3>
+<p>你的电脑桌面是咋样的？是放满了图标吗？反正我的 windows 是这样的。显然很少人会真的把可执行文件放到桌面上，桌面图标其实都是一些快捷方式。或者用 unix 的术语来说：软链接。为了减少工作量，我们今天来实现软链接的兄弟： <a class="reference external" href="https://en.wikipedia.org/wiki/Hard_link">硬链接</a> 。</p>
+<p>硬链接要求两个不同的目录项指向同一个文件，在我们的文件系统中也就是两个不同名称目录项指向同一个磁盘块。本节要求实现三个系统调用 <code class="docutils literal notranslate"><span class="pre">sys_linkat、sys_unlinkat、sys_stat</span></code> 。注意在测例中 <code class="docutils literal notranslate"><span class="pre">sys_open</span></code> 的接口定义也发生了变化。</p>
+<p><strong>open</strong></p>
+<blockquote>
+<div><ul>
+<li><p>syscall ID: 56</p></li>
+<li><p>功能：打开一个文件，并返回可以访问它的文件描述符。</p></li>
+<li><p>接口： <code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">open(int</span> <span class="pre">dirfd,</span> <span class="pre">char*</span> <span class="pre">path,</span> <span class="pre">unsigned</span> <span class="pre">int</span> <span class="pre">flags,</span> <span class="pre">unsigned</span> <span class="pre">int</span> <span class="pre">mode);</span></code></p></li>
+<li><dl>
+<dt>参数：</dt><dd><ul>
+<li><p><strong>dirfd</strong> : 仅为了兼容性考虑，本次实验中始终为 AT_FDCWD (-100)。可以忽略。</p></li>
+<li><p><strong>path</strong> 描述要打开的文件的文件名（简单起见，文件系统不需要支持目录，所有的文件都放在根目录 <code class="docutils literal notranslate"><span class="pre">/</span></code> 下）</p></li>
+<li><p><strong>flags</strong> 描述打开文件的标志，具体含义（其他参数不考虑）：</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#define O_RDONLY  0x000</span>
+<span class="cp">#define O_WRONLY  0x001</span>
+<span class="cp">#define O_RDWR    0x002         </span><span class="c1">// 可读可写</span>
+<span class="cp">#define O_CREATE  0x200</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>mode</strong> 仅在创建文件时有用，表示创建文件的访问权限，为了简单，本次实验中中统一为 <em>O_RDWR</em> 。</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>说明：</dt><dd><ul class="simple">
+<li><p>有 create 标志但文件存在时，忽略 create 标志，直接打开文件。</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>返回值：如果出现了错误则返回 -1，否则返回可以访问给定文件的文件描述符。</p></li>
+<li><dl class="simple">
+<dt>可能的错误：</dt><dd><ul class="simple">
+<li><p>文件不存在且无 create 标志。</p></li>
+<li><p>标志非法（低两位为 0x3）</p></li>
+<li><p>打开文件数量达到上限。</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<p><strong>linkat</strong>：</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>syscall ID: 37</p></li>
+<li><p>功能：创建一个文件的一个硬链接， <a class="reference external" href="https://linux.die.net/man/2/linkat">linkat标准接口</a> 。</p></li>
+<li><p>接口： <code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">linkat(int</span> <span class="pre">olddirfd,</span> <span class="pre">char*</span> <span class="pre">oldpath,</span> <span class="pre">int</span> <span class="pre">newdirfd,</span> <span class="pre">char*</span> <span class="pre">newpath,</span> <span class="pre">unsigned</span> <span class="pre">int</span> <span class="pre">flags)</span></code></p></li>
+<li><dl class="simple">
+<dt>参数：</dt><dd><ul>
+<li><p>olddirfd，newdirfd: 仅为了兼容性考虑，本次实验中始终为 AT_FDCWD (-100)，可以忽略。</p></li>
+<li><p>flags: 仅为了兼容性考虑，本次实验中始终为 0，可以忽略。</p></li>
+<li><p>oldpath：原有文件路径</p></li>
+<li><p>newpath: 新的链接文件路径。</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>说明：</dt><dd><ul>
+<li><p>为了方便，不考虑新文件路径已经存在的情况（属于未定义行为），除非链接同名文件。</p></li>
+<li><p>返回值：如果出现了错误则返回 -1，否则返回 0。</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>可能的错误</dt><dd><ul>
+<li><p>链接同名文件。</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<p><strong>unlinkat</strong>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>syscall ID: 35</p></li>
+<li><p>功能：取消一个文件路径到文件的链接, <a class="reference external" href="https://linux.die.net/man/2/unlinkat">unlinkat标准接口</a> 。</p></li>
+<li><p>接口： <code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">unlinkat(int</span> <span class="pre">dirfd,</span> <span class="pre">char*</span> <span class="pre">path,</span> <span class="pre">unsigned</span> <span class="pre">int</span> <span class="pre">flags)</span></code></p></li>
+<li><dl class="simple">
+<dt>参数：</dt><dd><ul>
+<li><p>dirfd: 仅为了兼容性考虑，本次实验中始终为 AT_FDCWD (-100)，可以忽略。</p></li>
+<li><p>flags: 仅为了兼容性考虑，本次实验中始终为 0，可以忽略。</p></li>
+<li><p>path：文件路径。</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>说明：</dt><dd><ul>
+<li><p>为了方便，不考虑使用 unlink 彻底删除文件的情况。</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>返回值：如果出现了错误则返回 -1，否则返回 0。</p></li>
+<li><dl class="simple">
+<dt>可能的错误</dt><dd><ul>
+<li><p>文件不存在。</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<p><strong>fstat</strong>:</p>
+<blockquote>
+<div><ul>
+<li><p>syscall ID: 80</p></li>
+<li><p>功能：获取文件状态。</p></li>
+<li><p>Ｃ接口： <code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">fstat(int</span> <span class="pre">fd,</span> <span class="pre">struct</span> <span class="pre">Stat*</span> <span class="pre">st)</span></code></p></li>
+<li><p>Rust 接口： <code class="docutils literal notranslate"><span class="pre">fn</span> <span class="pre">fstat(fd:</span> <span class="pre">i32,</span> <span class="pre">st:</span> <span class="pre">*mut</span> <span class="pre">Stat)</span> <span class="pre">-&gt;</span> <span class="pre">i32</span></code></p></li>
+<li><dl>
+<dt>参数：</dt><dd><ul class="simple">
+<li><p>fd: 文件描述符</p></li>
+<li><p>st: 文件状态结构体</p></li>
+</ul>
+<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="cp">#[repr(C)]</span><span class="w"></span>
+<span class="cp">#[derive(Debug)]</span><span class="w"></span>
+<span class="k">pub</span><span class="w"> </span><span class="k">struct</span> <span class="nc">Stat</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="sd">/// 文件所在磁盘驱动器号</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="n">dev</span>: <span class="kt">u64</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="sd">/// inode 文件所在 inode 编号</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="n">ino</span>: <span class="kt">u64</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="sd">/// 文件类型</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="n">mode</span>: <span class="nc">StatMode</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="sd">/// 硬链接数量，初始为1</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="n">nlink</span>: <span class="kt">u32</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="sd">/// 无需考虑，为了兼容性设计</span>
+<span class="w">    </span><span class="n">pad</span>: <span class="p">[</span><span class="kt">u64</span><span class="p">;</span><span class="w"> </span><span class="mi">7</span><span class="p">],</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="sd">/// StatMode 定义：</span>
+<span class="n">bitflags</span><span class="o">!</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">struct</span> <span class="nc">StatMode</span>: <span class="kt">u32</span> <span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="n">NULL</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="sd">/// directory</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="n">DIR</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="mo">0o040000</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="sd">/// ordinary regular file</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="n">FILE</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mo">0o100000</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<p>正确实现后，你的 os 应该能够正确运行 ch7_* 对应的一些测试用例，在 shell 中执行 ch7_usertest 来执行测试。</p>
+</div>
+<div class="section" id="tips">
+<h3>Tips<a class="headerlink" href="#tips" title="永久链接至标题">¶</a></h3>
+<ul class="simple">
+<li><p>需要给 inode 和 dinode 都增加 link 的计数，但强烈建议不要改变整个数据结构的大小，事实上，推荐你修改一个 pad。</p></li>
+<li><p>os 和 nfs 的修改需要同步，只不过 nfs 比较简单，只需要初始化 link 计数为 1 就行（可以通过修改 <a href="#id5"><span class="problematic" id="id6">``</span></a>ialloc``来实现）。</p></li>
+<li><p>理论上讲，unlink 有删除文件的语义，如果 link 计数为 0，需要删除 inode 和对应的数据块，但我们没有设置相关的测试，如果仅仅是想拿到测试分数，可以不实现这一点。</p></li>
+<li><p>理论上讲，想要测试文件系统的属性需要重启机器，但我们没有这样做。一方面是为了测试的方便，另一方面也留了一条后路。。。。。。。。。</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="id7">
+<h2>问答作业<a class="headerlink" href="#id7" title="永久链接至标题">¶</a></h2>
+<ol class="arabic simple">
+<li><p>目前的文件系统只有单级目录，假设想要支持多级文件目录，请描述你设想的实现方式，描述合理即可。</p></li>
+<li><p>在有了多级目录之后，我们就也可以为一个目录增加硬链接了。在这种情况下，文件树中是否可能出现环路(软硬链接都可以，鼓励多尝试)？你认为应该如何解决？请在你喜欢的系统上实现一个环路，描述你的实现方式以及系统提示、实际测试结果。</p></li>
+</ol>
+</div>
+<div class="section" id="id8">
+<h2>报告要求<a class="headerlink" href="#id8" title="永久链接至标题">¶</a></h2>
+<ul class="simple">
+<li><p>简单总结本次实验与上个实验相比你增加的东西。（控制在5行以内，不要贴代码）</p></li>
+<li><p>完成问答问题</p></li>
+<li><p>(optional) 你对本次实验设计及难度的看法。</p></li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="../chapter8/index.html" class="btn btn-neutral float-right" title="第八章：拓展实验" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="2fs-implementation.html" class="btn btn-neutral float-left" title="nfs文件系统" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; 版权所有 2020, Yifan Wu.
+
+    </p>
+  </div>
+    
+    
+    
+    利用 <a href="https://www.sphinx-doc.org/">Sphinx</a> 构建，使用了 
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">主题</a>
+    
+    由 <a href="https://readthedocs.org">Read the Docs</a>开发. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

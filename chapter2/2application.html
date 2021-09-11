@@ -1,0 +1,373 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>实现应用程序以及user文件夹 &mdash; uCore-Tutorial-Book-v2 0.1 文档</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script kind="utterances">
+
+    var commentsRunWhenDOMLoaded = cb => {
+    if (document.readyState != 'loading') {
+        cb()
+    } else if (document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', cb)
+    } else {
+        document.attachEvent('onreadystatechange', function() {
+        if (document.readyState == 'complete') cb()
+        })
+    }
+}
+
+var addUtterances = () => {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = "https://utteranc.es/client.js";
+    script.async = "async";
+
+    script.setAttribute("repo", "rcore-os/rCore-Tutorial-Book-v3");
+    script.setAttribute("issue-term", "pathname");
+    script.setAttribute("theme", "github-light");
+    script.setAttribute("label", "comments");
+    script.setAttribute("crossorigin", "anonymous");
+
+    sections = document.querySelectorAll("div.section");
+    if (sections !== null) {
+        section = sections[sections.length-1];
+        section.appendChild(script);
+    }
+}
+commentsRunWhenDOMLoaded(addUtterances);
+</script>
+        <script src="../_static/translations.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="next" title="实现批处理操作系统的细节" href="3batch-system.html" />
+    <link rel="prev" title="特权级机制" href="1rv-privilege.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> uCore-Tutorial-Book-v2
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="在文档中搜索" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">Part1 - Just do it!</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../chapter0/index.html">第零章：实验环境搭建</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter1/index.html">第一章：应用程序与基本执行环境</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">第二章：批处理系统</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="0intro.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1rv-privilege.html">特权级机制</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">实现应用程序以及user文件夹</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">本节导读</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">user文件夹以及测例简介</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ecall">应用程序的ecall处理流程</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="3batch-system.html">实现批处理操作系统的细节</a></li>
+<li class="toctree-l2"><a class="reference internal" href="4exercise.html">chapter2练习</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter3/index.html">第三章：多道程序与分时多任务</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter4/index.html">第四章：地址空间</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter5/index.html">第五章：进程及进程管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter6/index.html">第六章：进程间通信</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter7/index.html">第七章：文件系统与I/O重定向</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter8/index.html">第八章：拓展实验</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发注记</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../setup-sphinx.html">修改和构建本项目</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rest-example.html">reStructuredText 基本语法</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">uCore-Tutorial-Book-v2</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">第二章：批处理系统</a> &raquo;</li>
+        
+      <li>实现应用程序以及user文件夹</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/chapter2/2application.rst.txt" rel="nofollow"> 查看页面源码</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="user">
+<h1>实现应用程序以及user文件夹<a class="headerlink" href="#user" title="永久链接至标题">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<div class="section" id="id1">
+<h2>本节导读<a class="headerlink" href="#id1" title="永久链接至标题">¶</a></h2>
+<p>本节主要讲解如何设计实现被批处理系统逐个加载并运行的应用程序。它们是假定在 U 特权级模式运行的前提下而设计、编写的。实际上，如果应用程序的代码都符合它要运行的某特权级的约束，那它完全可能在某特权级中运行。保证应用程序的代码在 U 模式运行是我们接下来将实现的批处理系统的任务。其涉及的设计实现要点是：</p>
+<ul class="simple">
+<li><p>应用程序的内存布局</p></li>
+<li><p>应用程序发出的系统调用</p></li>
+</ul>
+<p>从某种程度上讲，这里设计的应用程序与第一章中的最小用户态执行环境有很多相同的地方。即设计一个应用程序，能够在用户态通过操作系统提供的服务完成自身的功能。</p>
+</div>
+<div class="section" id="id2">
+<h2>user文件夹以及测例简介<a class="headerlink" href="#id2" title="永久链接至标题">¶</a></h2>
+<p>应用程序的实现在项目根目录的 <code class="docutils literal notranslate"><span class="pre">user</span></code> 目录下，以 submodule 的形式存在。本章的测例文件，实际就是批处理操作系统中一个个待执行的文件。下面我们看一个测例来理解本章以及之后测例的本质：</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// ch2_hello_world.c</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;unistd.h&gt;</span><span class="cp"></span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">puts</span><span class="p">(</span><span class="s">&quot;Hello world from user mode program!</span><span class="se">\n</span><span class="s">Test hello_world OK!&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>这个测例编译出来实际上就是一个可执行的打印helloworld的程序。如果是windows或者linux上它编译之后是可以直接执行的。它也可以用来检查我们操作系统的实现是否有问题。</p>
+<p>我们的测例是通过cmake来编译的。具体编译出测例的指令可以参见其中的readme。在使用测例的时候要注意，由于我们使用的是自己的os系统，因此所有常见的C库，比如stdlib.h，stdio.h等等都不能使用C官方的版本。这里在user的include和lib之中我们提供了搭配本次实验的对应库，里面实现了所有测例所需要的函数。大家可以看到，所有测例代码调用的函数都是使用的这里的代码。而这些函数会依赖我们编写的os提供的系统调用(syscall)来完成运行。</p>
+<p>user的库是如何调用到os的系统调用的呢？在user/lib/arch/riscv下的syscall_arch.h为我们包装好了使用riscv汇编调用系统调用ecall的函数接口。lib之中的syscall.c文件就是用这些包装好的函数来进行系统调用实现完整的函数功能。在第一章中大家已经了解了异常委托的机制。U态的ecall指令会转到S态，也就是我们编写的os来进行处理，这样整个逻辑就打通了:为了使得测例成功运行，我们必须实现处理对应ecall的函数。</p>
+<p>那么现在我们还面临一个理解上的问题：就是测例文件在调用ecall的时候的细节：程序是如何完成特权级切换的？在ecall完毕回到U态的时候，程序又是如何恢复调用ecall之前的执行流并继续执行的呢？这里其实和汇编课程对于异常的处理是一样的，下面我们来复习一下。</p>
+</div>
+<div class="section" id="ecall">
+<h2>应用程序的ecall处理流程<a class="headerlink" href="#ecall" title="永久链接至标题">¶</a></h2>
+<p>ecall作为异常的一种，操作系统和CPU对它的处理方式其实和其他各种异常没什么区别。U态进行ecall调用具体的异常编号是8-Environment call from U-mode.RISCV处理异常需要引入几个特殊的寄存器——CSR寄存器。这些寄存器会记录异常和中断处理流程所需要或保存的各种信息。在上一章中我们看见的mideleg，medeleg寄存器就是CSR寄存器。</p>
+<dl class="simple">
+<dt>几个比较关键的CSR寄存器如下：</dt><dd><ul class="simple">
+<li><p>scause: 它用于记录异常和中断的原因。它的最高位为1是中断，否则是异常。其低位决定具体的种类。</p></li>
+<li><p>sepc：处理完毕中断异常之后需要返回的PC值。</p></li>
+<li><p>stval: 产生异常的指令的地址。</p></li>
+<li><p>stvec：处理异常的函数的起始地址。</p></li>
+<li><p>sstatus：记录一些比较重要的状态，比如是否允许中断异常嵌套。</p></li>
+</ul>
+</dd>
+</dl>
+<p>需要注意的是这些寄存器是S态的CSR寄存器。M态还有一套自己的CSR寄存器mcause，mtvec…</p>
+<p>所以当U态执行ecall指令的时候就产生了异常。此时CPU会处理上述的各个CSR寄存器，之后跳转至stvec所指向的地址，也就是我们的异常处理函数。我们的os的这个函数的具体位置是在trap_init函数之中就指定了——是uservec函数。这个函数位于trampoline.S之中，是由汇编语言编写的。在uservec之中，os保存了U态执行流的各个寄存器的值。这些值的位置其实已经由trap.h中的trapframe结构体规定好了:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// os/trap.h</span>
+<span class="k">struct</span> <span class="nc">trapframe</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="cm">/*   0 */</span><span class="w"> </span><span class="n">uint64</span><span class="w"> </span><span class="n">kernel_satp</span><span class="p">;</span><span class="w">   </span><span class="c1">// kernel page table</span>
+<span class="w">    </span><span class="cm">/*   8 */</span><span class="w"> </span><span class="n">uint64</span><span class="w"> </span><span class="n">kernel_sp</span><span class="p">;</span><span class="w">     </span><span class="c1">// top of process&#39;s kernel stack</span>
+<span class="w">    </span><span class="cm">/*  16 */</span><span class="w"> </span><span class="n">uint64</span><span class="w"> </span><span class="n">kernel_trap</span><span class="p">;</span><span class="w">   </span><span class="c1">// usertrap entry</span>
+<span class="w">    </span><span class="cm">/*  24 */</span><span class="w"> </span><span class="n">uint64</span><span class="w"> </span><span class="n">epc</span><span class="p">;</span><span class="w">           </span><span class="c1">// saved user program counter</span>
+<span class="w">    </span><span class="cm">/*  32 */</span><span class="w"> </span><span class="n">uint64</span><span class="w"> </span><span class="n">kernel_hartid</span><span class="p">;</span><span class="w"> </span><span class="c1">// saved kernel tp， unused in our project</span>
+<span class="w">    </span><span class="cm">/*  40 */</span><span class="w"> </span><span class="n">uint64</span><span class="w"> </span><span class="n">ra</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="cm">/*  48 */</span><span class="w"> </span><span class="n">uint64</span><span class="w"> </span><span class="n">sp</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="cm">/* ... */</span><span class="w"> </span><span class="p">....</span><span class="w"></span>
+<span class="w">    </span><span class="cm">/* 272 */</span><span class="w"> </span><span class="n">uint64</span><span class="w"> </span><span class="n">t5</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="cm">/* 280 */</span><span class="w"> </span><span class="n">uint64</span><span class="w"> </span><span class="n">t6</span><span class="p">;</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
+</pre></div>
+</div>
+<p>然后就跳转到了我们早先设定在 trapframe-&gt;kernel_trap 中的地址，也就是 trap.c 之中的 usertrap 函数。这个函数在main的初始化之中已经调用了。</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// os/trap.c</span>
+<span class="c1">// set up to take exceptions and traps while in the kernel.</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">trapinit</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">w_stvec</span><span class="p">((</span><span class="n">uint64</span><span class="p">)</span><span class="n">uservec</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="o">~</span><span class="mh">0x3</span><span class="p">);</span><span class="w">   </span><span class="c1">// 写 stvec, 最后两位表明跳转模式，该实验始终为 0</span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>该函数完成异常中断处理与返回，包括执行我们写好的syscall。</p>
+<p>从S态返回U态是由 usertrapret 函数实现的。这里设置了返回地址sepc，并调用另外一个 userret 汇编函数来恢复 trapframe 结构体之中的保存的U态执行流数据。最后执行sret指令，从S态回到U态，并将PC移动到sepc指定的位置。</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// os/trap.c</span>
+<span class="c1">// 在这里回到U态继续执行用户程序。</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">usertrapret</span><span class="p">(</span><span class="k">struct</span> <span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">trapframe</span><span class="p">,</span><span class="w"> </span><span class="n">uint64</span><span class="w"> </span><span class="n">kstack</span><span class="p">)</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">trapframe</span><span class="o">-&gt;</span><span class="n">kernel_satp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">r_satp</span><span class="p">();</span><span class="w"> </span><span class="c1">// 本章无用</span>
+<span class="w">    </span><span class="n">trapframe</span><span class="o">-&gt;</span><span class="n">kernel_sp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">kstack</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">PGSIZE</span><span class="p">;</span><span class="w"> </span><span class="c1">// process&#39;s kernel stack</span>
+<span class="w">    </span><span class="n">trapframe</span><span class="o">-&gt;</span><span class="n">kernel_trap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">uint64</span><span class="p">)</span><span class="n">usertrap</span><span class="p">;</span><span class="w"> </span><span class="c1">// 设置了handler</span>
+<span class="w">    </span><span class="n">trapframe</span><span class="o">-&gt;</span><span class="n">kernel_hartid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">r_tp</span><span class="p">();</span><span class="w"> </span><span class="c1">// hartid for cpuid()</span>
+
+<span class="w">    </span><span class="n">w_sepc</span><span class="p">(</span><span class="n">trapframe</span><span class="o">-&gt;</span><span class="n">epc</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// set up the registers that trampoline.S&#39;s sret will use</span>
+<span class="w">    </span><span class="c1">// to get to user space.</span>
+
+<span class="w">    </span><span class="c1">// set S Previous Privilege mode to User.</span>
+<span class="w">    </span><span class="n">uint64</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">r_sstatus</span><span class="p">();</span><span class="w"></span>
+<span class="w">    </span><span class="n">x</span><span class="w"> </span><span class="o">&amp;=</span><span class="w"> </span><span class="o">~</span><span class="n">SSTATUS_SPP</span><span class="p">;</span><span class="w"> </span><span class="c1">// clear SPP to 0 for user mode</span>
+<span class="w">    </span><span class="n">x</span><span class="w"> </span><span class="o">|=</span><span class="w"> </span><span class="n">SSTATUS_SPIE</span><span class="p">;</span><span class="w"> </span><span class="c1">// enable interrupts in user mode</span>
+<span class="w">    </span><span class="n">w_sstatus</span><span class="p">(</span><span class="n">x</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">    </span><span class="c1">// tell trampoline.S the user page table to switch to.</span>
+<span class="w">    </span><span class="c1">// uint64 satp = MAKE_SATP(p-&gt;pagetable);</span>
+<span class="w">    </span><span class="n">userret</span><span class="p">((</span><span class="n">uint64</span><span class="p">)</span><span class="n">trapframe</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>这个过程中还有许多细节，大家将在课后习题中慢慢品味。</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="3batch-system.html" class="btn btn-neutral float-right" title="实现批处理操作系统的细节" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="1rv-privilege.html" class="btn btn-neutral float-left" title="特权级机制" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; 版权所有 2020, Yifan Wu.
+
+    </p>
+  </div>
+    
+    
+    
+    利用 <a href="https://www.sphinx-doc.org/">Sphinx</a> 构建，使用了 
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">主题</a>
+    
+    由 <a href="https://readthedocs.org">Read the Docs</a>开发. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

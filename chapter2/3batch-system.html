@@ -1,0 +1,434 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>实现批处理操作系统的细节 &mdash; uCore-Tutorial-Book-v2 0.1 文档</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script kind="utterances">
+
+    var commentsRunWhenDOMLoaded = cb => {
+    if (document.readyState != 'loading') {
+        cb()
+    } else if (document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', cb)
+    } else {
+        document.attachEvent('onreadystatechange', function() {
+        if (document.readyState == 'complete') cb()
+        })
+    }
+}
+
+var addUtterances = () => {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = "https://utteranc.es/client.js";
+    script.async = "async";
+
+    script.setAttribute("repo", "rcore-os/rCore-Tutorial-Book-v3");
+    script.setAttribute("issue-term", "pathname");
+    script.setAttribute("theme", "github-light");
+    script.setAttribute("label", "comments");
+    script.setAttribute("crossorigin", "anonymous");
+
+    sections = document.querySelectorAll("div.section");
+    if (sections !== null) {
+        section = sections[sections.length-1];
+        section.appendChild(script);
+    }
+}
+commentsRunWhenDOMLoaded(addUtterances);
+</script>
+        <script src="../_static/translations.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="next" title="chapter2练习" href="4exercise.html" />
+    <link rel="prev" title="实现应用程序以及user文件夹" href="2application.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> uCore-Tutorial-Book-v2
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="在文档中搜索" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">Part1 - Just do it!</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../chapter0/index.html">第零章：实验环境搭建</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter1/index.html">第一章：应用程序与基本执行环境</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">第二章：批处理系统</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="0intro.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1rv-privilege.html">特权级机制</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2application.html">实现应用程序以及user文件夹</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">实现批处理操作系统的细节</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id2">本节导读</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">将应用程序链接到内核</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#makefile">makefile更新</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#relocation">内核的relocation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">用户栈与内核栈</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="4exercise.html">chapter2练习</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter3/index.html">第三章：多道程序与分时多任务</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter4/index.html">第四章：地址空间</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter5/index.html">第五章：进程及进程管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter6/index.html">第六章：进程间通信</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter7/index.html">第七章：文件系统与I/O重定向</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chapter8/index.html">第八章：拓展实验</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发注记</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../setup-sphinx.html">修改和构建本项目</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rest-example.html">reStructuredText 基本语法</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">uCore-Tutorial-Book-v2</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">第二章：批处理系统</a> &raquo;</li>
+        
+      <li>实现批处理操作系统的细节</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/chapter2/3batch-system.rst.txt" rel="nofollow"> 查看页面源码</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="term-batchos">
+<span id="id1"></span><h1>实现批处理操作系统的细节<a class="headerlink" href="#term-batchos" title="永久链接至标题">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<div class="section" id="id2">
+<h2>本节导读<a class="headerlink" href="#id2" title="永久链接至标题">¶</a></h2>
+<p>前面一节中我们明白了os是如何执行应用程序的。但是os是如何”找到“这些应用程序并允许它们的呢？在引言之中我们简要介绍了这是由link_app.S以及kernel_app.ld完成的。实际上，能够在批处理操作系统与应用程序之间建立联系的纽带。这主要包括两个方面：</p>
+<ul class="simple">
+<li><p>静态编码：通过一定的编程技巧，把应用程序代码和批处理操作系统代码“绑定”在一起。</p></li>
+<li><p>动态加载：基于静态编码留下的“绑定”信息，操作系统可以找到应用程序文件二进制代码的起始地址和长度，并能加载到内存中运行。</p></li>
+</ul>
+<p>这里与硬件相关且比较困难的地方是如何让在内核态的批处理操作系统启动应用程序，且能让应用程序在用户态正常执行。</p>
+</div>
+<div class="section" id="id3">
+<h2>将应用程序链接到内核<a class="headerlink" href="#id3" title="永久链接至标题">¶</a></h2>
+<div class="section" id="makefile">
+<h3>makefile更新<a class="headerlink" href="#makefile" title="永久链接至标题">¶</a></h3>
+<p>我们首先看一看本章的makefile改变了什么</p>
+<div class="highlight-Makefile notranslate"><div class="highlight"><pre><span></span><span class="nf">link_app.o</span><span class="o">:</span> <span class="n">link_app</span>.<span class="n">S</span>
+<span class="nf">link_app.S</span><span class="o">:</span> <span class="n">pack</span>.<span class="n">py</span>
+    @<span class="k">$(</span>PY<span class="k">)</span> pack.py
+<span class="nf">kernel_app.ld</span><span class="o">:</span> <span class="n">kernelld</span>.<span class="n">py</span>
+    @<span class="k">$(</span>PY<span class="k">)</span> kernelld.py
+
+<span class="nf">kernel</span><span class="o">:</span> <span class="k">$(</span><span class="nv">OBJS</span><span class="k">)</span> <span class="n">kernel_app</span>.<span class="n">ld</span> <span class="n">link_app</span>.<span class="n">S</span>
+    <span class="k">$(</span>LD<span class="k">)</span> <span class="k">$(</span>LDFLAGS<span class="k">)</span> -T kernel_app.ld -o kernel <span class="k">$(</span>OBJS<span class="k">)</span>
+    <span class="k">$(</span>OBJDUMP<span class="k">)</span> -S kernel &gt; kernel.asm
+    <span class="k">$(</span>OBJDUMP<span class="k">)</span> -t kernel <span class="p">|</span> sed <span class="s1">&#39;1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d&#39;</span> &gt; kernel.sym
+</pre></div>
+</div>
+<p>可以看到makefile执行了两个python脚本生成了我们提到的link_app.S和kernel_app.ld。这里选择python只是因为比较好写生成的代码，我们的os和python没有任何关系。link_app.S的大致内容如下:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="o">.</span><span class="n">align</span> <span class="mi">4</span>
+    <span class="o">.</span><span class="n">section</span> <span class="o">.</span><span class="n">data</span>
+    <span class="o">.</span><span class="k">global</span> <span class="n">_app_num</span>
+<span class="n">_app_num</span><span class="p">:</span>
+    <span class="o">.</span><span class="n">quad</span> <span class="mi">2</span>
+    <span class="o">.</span><span class="n">quad</span> <span class="n">app_0_start</span>
+    <span class="o">.</span><span class="n">quad</span> <span class="n">app_1_start</span>
+    <span class="o">.</span><span class="n">quad</span> <span class="n">app_1_end</span>
+
+    <span class="o">.</span><span class="k">global</span> <span class="n">_app_names</span>
+<span class="n">_app_names</span><span class="p">:</span>
+<span class="o">.</span><span class="n">string</span> <span class="s2">&quot;hello.bin&quot;</span>
+<span class="o">.</span><span class="n">string</span> <span class="s2">&quot;matrix.bin&quot;</span>
+
+    <span class="o">.</span><span class="n">section</span> <span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">app0</span>
+    <span class="o">.</span><span class="k">global</span> <span class="n">app_0_start</span>
+<span class="n">app_0_start</span><span class="p">:</span>
+    <span class="o">.</span><span class="n">incbin</span> <span class="s2">&quot;../user/target/bin/ch2t_write0.bin&quot;</span>
+
+    <span class="o">.</span><span class="n">section</span> <span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">app1</span>
+    <span class="o">.</span><span class="k">global</span> <span class="n">app_1_start</span>
+<span class="n">app_1_start</span><span class="p">:</span>
+    <span class="o">.</span><span class="n">incbin</span> <span class="s2">&quot;../user/target/bin/ch2b_write1.bin&quot;</span>
+<span class="n">app_1_end</span><span class="p">:</span>
+</pre></div>
+</div>
+<p>pack.py会遍历../user/target/bin，并将该目录下的目标用户程序*.bin包含入 link_app.S中，同时给每一个bin文件记录其地址和名称信息。最后，我们在 Makefile 中会将内核与 link_app.S 一同编译并链接。这样，我们在内核中就可以通过 extern 指令访问到用户程序的所有信息，如其文件名等。</p>
+<p>由于 riscv 要求程序指令必须是对齐的，我们对内核链接脚本也作出修改，保证用户程序链接时的指令对齐，这些内容见 os/kernelld.py。这个脚本也会遍历../user/target/，并对每一个bin文件分配对齐的空间。最终修改后的kernel_app.ld脚本中多了如下对齐要求:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">.</span><span class="n">data</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="o">*</span><span class="p">(</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+    <span class="o">.</span> <span class="o">=</span> <span class="n">ALIGN</span><span class="p">(</span><span class="mh">0x1000</span><span class="p">);</span>
+    <span class="o">*</span><span class="p">(</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">app0</span><span class="p">)</span>
+    <span class="o">.</span> <span class="o">=</span> <span class="n">ALIGN</span><span class="p">(</span><span class="mh">0x1000</span><span class="p">);</span>
+    <span class="o">*</span><span class="p">(</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">app1</span><span class="p">)</span>
+    <span class="o">.</span> <span class="o">=</span> <span class="n">ALIGN</span><span class="p">(</span><span class="mh">0x1000</span><span class="p">);</span>
+    <span class="o">*</span><span class="p">(</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">app2</span><span class="p">)</span>
+    <span class="o">.</span> <span class="o">=</span> <span class="n">ALIGN</span><span class="p">(</span><span class="mh">0x1000</span><span class="p">);</span>
+    <span class="o">*</span><span class="p">(</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">app3</span><span class="p">)</span>
+    <span class="o">.</span> <span class="o">=</span> <span class="n">ALIGN</span><span class="p">(</span><span class="mh">0x1000</span><span class="p">);</span>
+    <span class="o">*</span><span class="p">(</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">app4</span><span class="p">)</span>
+
+    <span class="o">*</span><span class="p">(</span><span class="o">.</span><span class="n">data</span><span class="o">.*</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>编译出的kernel已经包含了bin文件的信息。熟悉汇编的同学可以去看看生成的kernel.asm（kernel整体的汇编代码）来加深理解。</p>
+</div>
+<div class="section" id="relocation">
+<h3>内核的relocation<a class="headerlink" href="#relocation" title="永久链接至标题">¶</a></h3>
+<p>内核中通过访问 link_app.S 中定义的 _app_num、app_0_start 等符号来获得用户程序位置.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// os/batch.c</span>
+<span class="k">extern</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">_app_num</span><span class="p">[];</span><span class="w"> </span><span class="c1">// 在link_app.S之中已经定义</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">batchinit</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">app_info_ptr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">uint64</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="n">_app_num</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">app_num</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">*</span><span class="n">app_info_ptr</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">app_info_ptr</span><span class="o">++</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// from now on:</span>
+<span class="w">    </span><span class="c1">// app_n_start = app_info_ptr[n]</span>
+<span class="w">    </span><span class="c1">// app_n_end = app_info_ptr[n+1]</span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>然而我们并不能直接跳转到 app_n_start 直接运行，因为用户程序在编译的时候，会假定程序处在虚存的特定位置，而由于我们还没有虚存机制，因此我们在运行之前还需要将用户程序加载到规定的物理内存位置。为此我们规定了用户的链接脚本，并在内核完成程序的 “搬运”</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span># user/lib/arch/riscv/user.ld
+SECTIONS {
+    . = 0x80400000;                 #　规定了内存加载位置
+
+    .startup : {
+        *crt.S.o(.text)             #　确保程序入口在程序开头
+    }
+
+    .text : { *(.text) }
+    .data : { *(.data .rodata) }
+
+    /DISCARD/ : { *(.eh_*) }
+}
+</pre></div>
+</div>
+<p>这样之后，我们就可以在读取指定内存位置的bin文件来执行它们了。下面是os内核读取link_app.S的info并把它们搬运到0x80400000开始位置的具体过程。</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// os/batch.c</span>
+<span class="k">const</span><span class="w"> </span><span class="n">uint64</span><span class="w"> </span><span class="n">BASE_ADDRESS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0x80400000</span><span class="p">,</span><span class="w"> </span><span class="n">MAX_APP_SIZE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0x20000</span><span class="p">;</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">load_app</span><span class="p">(</span><span class="n">uint64</span><span class="o">*</span><span class="w"> </span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">uint64</span><span class="w"> </span><span class="n">start</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">info</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="n">end</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">info</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="n">length</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">end</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">memset</span><span class="p">((</span><span class="kt">void</span><span class="o">*</span><span class="p">)</span><span class="n">BASE_ADDRESS</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">MAX_APP_SIZE</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">memmove</span><span class="p">((</span><span class="kt">void</span><span class="o">*</span><span class="p">)</span><span class="n">BASE_ADDRESS</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">void</span><span class="o">*</span><span class="p">)</span><span class="n">start</span><span class="p">,</span><span class="w"> </span><span class="n">length</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">length</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="id4">
+<h2>用户栈与内核栈<a class="headerlink" href="#id4" title="永久链接至标题">¶</a></h2>
+<p>我们自己的OS内核运行时，是需要一个栈来存放自己需要的变量的，这个栈我们称之为内核栈。在RV之中，我们使用sp寄存器来记录当前栈顶的位置。因此，在进入OS之前，我们需要告诉qemu我们OS的内核栈的起始位置。这个在entry.S之中有实现:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">//</span> <span class="n">entry</span><span class="o">.</span><span class="n">S</span>
+ <span class="n">_entry</span><span class="p">:</span>
+    <span class="n">la</span> <span class="n">sp</span><span class="p">,</span> <span class="n">boot_stack_top</span>
+    <span class="n">call</span> <span class="n">main</span>
+
+    <span class="o">.</span><span class="n">section</span> <span class="o">.</span><span class="n">bss</span><span class="o">.</span><span class="n">stack</span>
+    <span class="o">.</span><span class="n">globl</span> <span class="n">boot_stack</span>
+<span class="n">boot_stack</span><span class="p">:</span>
+    <span class="o">.</span><span class="n">space</span> <span class="mi">4096</span> <span class="o">*</span> <span class="mi">16</span>
+    <span class="o">.</span><span class="n">globl</span> <span class="n">boot_stack_top</span>
+</pre></div>
+</div>
+<p>一个应用程序肯定也需要内存空间来存放执行时需要的种种变量（实际上就是执行程序对应的用户栈），同时我们在上一章节提到了trapframe，这个也需要一个空间存放。那么OS是如何给应用程序分配这些对应的空间的呢？</p>
+<p>实际上，我们采用一个静态分配的方式来给程序分配对应的一定大小的空间,并在run_next_app函数初始化应用程序对应的trapframe，并将用户栈对应的起始位置写入trapframe之中的sp寄存器，来让程序找到自己用户栈起始的位置。（注意栈在空间是高到低位，因此这里起始位置的初始化是在静态分配数组的尾部)。</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// loader.c</span>
+<span class="n">__attribute__</span><span class="p">((</span><span class="n">aligned</span><span class="p">(</span><span class="mi">4096</span><span class="p">)))</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">user_stack</span><span class="p">[</span><span class="n">USER_STACK_SIZE</span><span class="p">];</span><span class="w"></span>
+<span class="n">__attribute__</span><span class="p">((</span><span class="n">aligned</span><span class="p">(</span><span class="mi">4096</span><span class="p">)))</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">trap_page</span><span class="p">[</span><span class="n">TRAP_PAGE_SIZE</span><span class="p">];</span><span class="w"></span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">run_next_app</span><span class="p">()</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">struct</span> <span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">trapframe</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="k">struct</span> <span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">trap_page</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">...</span><span class="w"></span>
+<span class="w">    </span><span class="n">memset</span><span class="p">(</span><span class="n">trapframe</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">4096</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">trapframe</span><span class="o">-&gt;</span><span class="n">epc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BASE_ADDRESS</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">trapframe</span><span class="o">-&gt;</span><span class="n">sp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">uint64</span><span class="p">)</span><span class="n">user_stack</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">USER_STACK_SIZE</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">usertrapret</span><span class="p">(</span><span class="n">trapframe</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">uint64</span><span class="p">)</span><span class="n">boot_stack_top</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="p">...</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>到这里，一个应用程序就算真正完全加载进入了内存之中进入就绪状态，可以随时运行了。</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="4exercise.html" class="btn btn-neutral float-right" title="chapter2练习" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="2application.html" class="btn btn-neutral float-left" title="实现应用程序以及user文件夹" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; 版权所有 2020, Yifan Wu.
+
+    </p>
+  </div>
+    
+    
+    
+    利用 <a href="https://www.sphinx-doc.org/">Sphinx</a> 构建，使用了 
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">主题</a>
+    
+    由 <a href="https://readthedocs.org">Read the Docs</a>开发. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
