@@ -143,8 +143,9 @@ commentsRunWhenDOMLoaded(addUtterances);
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#id3">问答作业</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id4">报告要求</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id5">参考信息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">实验目录要求</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">报告要求</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id6">参考信息</a></li>
 </ul>
 </li>
 </ul>
@@ -239,8 +240,8 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><p>老规矩，先 <cite>make test BASE=1</cite> 看下啥情况。</p></li>
 <li><p>理解框架的多任务加载机制，了解此时用户和内核的大概内存布局。在此基础上，实现本章编程作业(1)更安全的 sys_write。</p></li>
 <li><p>理解框架的调度机制，尤其要搞明白时钟中断的处理机制以及 yield 之后下一个进程的选择。在次基础上，完成本节的编程作业(2)stride 调度算法。</p></li>
-<li><p>[选做，不算分]进一步思考 stride 调度算法，完成本章问答作业。</p></li>
-<li><p>最终，完成实验报告并 push 你的 ch3 分支到远程仓库。<a href="#id8"><span class="problematic" id="id9">ch3报告要求_</span></a> 。push 代码后会自动执行 CI，代码给分以 CI 给分为准。</p></li>
+<li><p>进一步思考 stride 调度算法，完成本章问答作业。</p></li>
+<li><p>最终，完成实验报告并 push 你的 ch3 分支到远程仓库。<a href="#id9"><span class="problematic" id="id10">ch3报告要求_</span></a> 。push 代码后会自动执行 CI，代码给分以 CI 给分为准。</p></li>
 </ul>
 </div>
 <div class="section" id="id2">
@@ -294,7 +295,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </div>
 <div class="section" id="id3">
 <h2>问答作业<a class="headerlink" href="#id3" title="永久链接至标题">¶</a></h2>
-<p>1、[选做]　stride 算法深入</p>
+<p>1、stride 算法深入</p>
 <blockquote>
 <div><p>stride 算法原理非常简单，但是有一个比较大的问题。例如两个 pass = 10 的进程，使用 8bit 无符号整形储存 stride， p1.stride = 255, p2.stride = 250，在 p2 执行一个时间片后，理论上下一次应该 p1 执行。</p>
 <ul class="simple">
@@ -321,15 +322,27 @@ commentsRunWhenDOMLoaded(addUtterances);
 </div></blockquote>
 </div>
 <div class="section" id="id4">
-<h2>报告要求<a class="headerlink" href="#id4" title="永久链接至标题">¶</a></h2>
+<h2>实验目录要求<a class="headerlink" href="#id4" title="永久链接至标题">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>├── os(内核实现)
+│   └── ...
+├── reports (不是 report)
+│   ├── ch3.pdf
+│   └── ...
+├── ...
+</pre></div>
+</div>
+</div>
+<div class="section" id="id5">
+<h2>报告要求<a class="headerlink" href="#id5" title="永久链接至标题">¶</a></h2>
 <ul>
 <li><p>pdf 格式，CI 网站提交，注明姓名学号。</p></li>
+<li><p>注意目录要求，报告命名 <code class="docutils literal notranslate"><span class="pre">ch3.pdf</span></code>，位于 <code class="docutils literal notranslate"><span class="pre">reports</span></code> 目录下。命名错误视作没有提交。后续实验同理。</p></li>
 <li><p>完成问答问题。</p>
 <blockquote>
 <div><ul class="simple">
-<li><p>ch1: <a href="#id10"><span class="problematic" id="id11">ch1问答作业_</span></a> 。</p></li>
-<li><p>ch2: <a href="#id12"><span class="problematic" id="id13">ch2问答作业_</span></a> 。</p></li>
-<li><p>[可选] ch3: <a href="#id14"><span class="problematic" id="id15">ch3问答作业_</span></a> 。</p></li>
+<li><p>ch1: <a href="#id11"><span class="problematic" id="id12">ch1问答作业_</span></a> 。</p></li>
+<li><p>ch2: <a href="#id13"><span class="problematic" id="id14">ch2问答作业_</span></a> 。</p></li>
+<li><p>ch3: <a href="#id15"><span class="problematic" id="id16">ch3问答作业_</span></a> 。</p></li>
 </ul>
 </div></blockquote>
 </li>
@@ -340,8 +353,8 @@ commentsRunWhenDOMLoaded(addUtterances);
 <p>请勿抄袭，报告会进行抽样查重！</p>
 </div>
 </div>
-<div class="section" id="id5">
-<h2>参考信息<a class="headerlink" href="#id5" title="永久链接至标题">¶</a></h2>
+<div class="section" id="id6">
+<h2>参考信息<a class="headerlink" href="#id6" title="永久链接至标题">¶</a></h2>
 <p>如果有兴趣进一步了解 stride 调度相关内容，可以尝试看看：</p>
 <ul class="simple">
 <li><p><a class="reference external" href="https://people.cs.umass.edu/~mcorner/courses/691J/papers/PS/waldspurger_stride/waldspurger95stride.pdf">作者 Carl A. Waldspurger 写这个调度算法的原论文</a></p></li>

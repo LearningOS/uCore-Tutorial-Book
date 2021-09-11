@@ -138,11 +138,12 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toctree-l2 current"><a class="current reference internal" href="#">chapter6练习</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#id1">本章任务</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id2">编程作业</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id3">进程通信：共享内存</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id3">进程通信：邮箱</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id4">[挑战]进程通信：共享内存</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#id4">问答作业</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id5">报告要求</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">问答作业</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id6">报告要求</a></li>
 </ul>
 </li>
 </ul>
@@ -231,9 +232,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <div class="section" id="id1">
 <h2>本章任务<a class="headerlink" href="#id1" title="永久链接至标题">¶</a></h2>
 <ul class="simple">
-<li><p>运行 <code class="docutils literal notranslate"><span class="pre">ch6b_usertest</span></code></p></li>
-<li><p>merge ch4 的修改, <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">merge</span> <span class="pre">ch4</span></code> 并处理冲突。</p></li>
-<li><p>检查 <code class="docutils literal notranslate"><span class="pre">ch6_4usertest</span></code>，<code class="docutils literal notranslate"><span class="pre">ch6b_usertest</span></code>, 确保 ch4 ch6 的功能依然正确。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ch6b_usertest</span></code> <code class="docutils literal notranslate"><span class="pre">ch6_mergetest</span></code></p></li>
 <li><p>结合代码、指导书已经课堂所学，理解文件系统的几个概念：全局文件表 / 进程文件描述符等</p></li>
 <li><p>完成本章编程作业。</p></li>
 <li><p>最终，完成实验报告并 push 你的 ch6 分支到远程仓库。</p></li>
@@ -242,11 +241,93 @@ commentsRunWhenDOMLoaded(addUtterances);
 <div class="section" id="id2">
 <h2>编程作业<a class="headerlink" href="#id2" title="永久链接至标题">¶</a></h2>
 <div class="section" id="id3">
-<h3>进程通信：共享内存<a class="headerlink" href="#id3" title="永久链接至标题">¶</a></h3>
+<h3>进程通信：邮箱<a class="headerlink" href="#id3" title="永久链接至标题">¶</a></h3>
+<p>这一章我们实现了基于 pipe 的进程间通信，但是看测例就知道了，管道不太自由，我们来实现一套乍一看更靠谱的通信 syscall吧！本节要求实现邮箱机制，以及对应的 syscall。</p>
+<ul class="simple">
+<li><p>邮箱说明：每个进程拥有唯一一个邮箱，基于“数据报”收发字节信息，利用环形buffer存储，读写顺序为 FIFO，不记录来源进程。每次读写单位必须为一个报文，如果用于接收的缓冲区长度不够，舍弃超出的部分（截断报文）。为了简单，邮箱中最多拥有16条报文，每条报文最大长度256字节。当邮箱满时，发送邮件（也就是写邮箱会失败）。不考虑读写邮箱的权限，也就是所有进程都能够随意给其他进程的邮箱发报。</p></li>
+</ul>
+<p><strong>mailread</strong>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>syscall ID：401</p></li>
+<li><p>C接口： <code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">mailread(void*</span> <span class="pre">buf,</span> <span class="pre">int</span> <span class="pre">len)</span></code></p></li>
+<li><p>Rust接口: <code class="docutils literal notranslate"><span class="pre">fn</span> <span class="pre">mailread(buf:</span> <span class="pre">*mut</span> <span class="pre">u8,</span> <span class="pre">len:</span> <span class="pre">usize)</span></code></p></li>
+<li><p>功能：读取一个报文，如果成功返回报文长度.</p></li>
+<li><dl class="simple">
+<dt>参数：</dt><dd><ul>
+<li><p>buf: 缓冲区头。</p></li>
+<li><p>len：缓冲区长度。</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>说明：</dt><dd><ul>
+<li><p>len &gt; 256 按 256 处理，len &lt; 队首报文长度且不为0，则截断报文。</p></li>
+<li><p>len = 0，则不进行读取，如果没有报文读取，返回-1，否则返回0，这是用来测试是否有报文可读。</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>可能的错误：</dt><dd><ul>
+<li><p>邮箱空。</p></li>
+<li><p>buf 无效。</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<p><strong>mailwrite</strong>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>syscall ID：402</p></li>
+<li><p>C接口： <code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">mailwrite(int</span> <span class="pre">pid,</span> <span class="pre">void*</span> <span class="pre">buf,</span> <span class="pre">int</span> <span class="pre">len)</span></code></p></li>
+<li><p>Rust接口: <code class="docutils literal notranslate"><span class="pre">fn</span> <span class="pre">mailwrite(pid:</span> <span class="pre">usize,</span> <span class="pre">buf:</span> <span class="pre">*mut</span> <span class="pre">u8,</span> <span class="pre">len:</span> <span class="pre">usize)</span></code></p></li>
+<li><p>功能：向对应进程邮箱插入一条报文.</p></li>
+<li><dl class="simple">
+<dt>参数：</dt><dd><ul>
+<li><p>pid: 目标进程id。</p></li>
+<li><p>buf: 缓冲区头。</p></li>
+<li><p>len：缓冲区长度。</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>说明：</dt><dd><ul>
+<li><p>len &gt; 256 按 256 处理，</p></li>
+<li><p>len = 0，则不进行写入，如果邮箱满，返回-1，否则返回0，这是用来测试是否可以发报。</p></li>
+<li><p>可以向自己的邮箱写入报文。</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>可能的错误：</dt><dd><ul>
+<li><p>邮箱满。</p></li>
+<li><p>buf 无效。</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<p>实现完成之后，你应该能通过 ch6_mail* 对应的所有测例，在 shell 中执行 ch6_usertest 来执行所有测试。</p>
+<p>tips:</p>
+<ul class="simple">
+<li><p>给每个进程默认分配一个邮箱即可。</p></li>
+<li><p>邮箱的具体实现就是一个 ring buffer。</p></li>
+</ul>
+</div>
+<div class="section" id="id4">
+<h3>[挑战]进程通信：共享内存<a class="headerlink" href="#id4" title="永久链接至标题">¶</a></h3>
+<p>如果你认为邮箱不够炫酷，可以试试这个。挑战内容，不占分，但你还是必须先实现 mail。</p>
 <p>进程间通信(IPC)对于某些系统和应用其实十分重要，它被称为微内核的 Achilles tendon，同时在 android 应用中也十分常见，为此 android 系统专门设计了一套 binder 机制来加速 IPC 的效率。</p>
 <p>最基础的 IPC 方式大致分两类：</p>
 <ul class="simple">
-<li><p>内核拷贝：指通过内核完成数据的拷贝，比如 pipe。</p></li>
+<li><p>内核拷贝：指通过内核完成数据的拷贝，比如 pipe，邮箱。</p></li>
 <li><p>共享内存：直接将同一段物理内存映射到不同进程的虚存空间。</p></li>
 </ul>
 <p>其中内核拷贝的方式一般效率较低，但安全可靠，容易同步。而共享内存的方式不需要内核参与，速度较快，但需要用户态自己想办法同步，同时可能会导致某些攻击，感兴趣的同学可以参考 <a class="reference external" href="https://en.wikipedia.org/wiki/TOCTTOU">TOCTTOU</a> 。</p>
@@ -280,6 +361,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <dt>说明：</dt><dd><ul>
 <li><p>我们尚未有完整文件系统，所以这只是一个看上去像 posix 的 mmap 但实际不是的系统调用。</p></li>
 <li><p>我们不定义共享内存与 fork 的相互作用，不会加以测试，任何实现都可以。</p></li>
+<li><p>允许同一个进程将同一块共享内存映射到自己的不同虚存。</p></li>
 <li><p>为了简单，addr 要求按页对齐(否则报错)，len 可直接按页上取整。</p></li>
 <li><p>为了简单，不考虑发生错误时的页回收（也就是内存泄漏）。</p></li>
 </ul>
@@ -321,15 +403,16 @@ commentsRunWhenDOMLoaded(addUtterances);
 </dl>
 </li>
 </ul>
-<p>正确实现后，你的 os 应该能够正确运行 ch6_* 对应的一些测试用例，在 shell 中执行 ch6_usertest 来执行测试。</p>
+<p>正确实现后，你的 os 应该能够正确运行 ch6_shmem* 对应的一些测试用例，在 shell 中执行 ch6_usertest1 来执行测试。</p>
 <p>tips:</p>
 <ul class="simple">
-<li><p>自求多福吧。。。</p></li>
+<li><p>QAQ，shmem 的企划被老师以太难为由毙掉了，所以就成了 challange…</p></li>
+<li><p>难受啊，这个唯一一个测例和参考实现都写好了的 challange …</p></li>
 </ul>
 </div>
 </div>
-<div class="section" id="id4">
-<h2>问答作业<a class="headerlink" href="#id4" title="永久链接至标题">¶</a></h2>
+<div class="section" id="id5">
+<h2>问答作业<a class="headerlink" href="#id5" title="永久链接至标题">¶</a></h2>
 <ol class="arabic simple">
 <li><p>举出使用 pipe 的一个实际应用的例子。</p></li>
 </ol>
@@ -337,11 +420,13 @@ commentsRunWhenDOMLoaded(addUtterances);
 - 想想你平时咋使用 linux terminal 的？
 - 如何使用 cat 和 wc 完成一个文件的行数统计？</p>
 </div>
-<div class="section" id="id5">
-<h2>报告要求<a class="headerlink" href="#id5" title="永久链接至标题">¶</a></h2>
+<div class="section" id="id6">
+<h2>报告要求<a class="headerlink" href="#id6" title="永久链接至标题">¶</a></h2>
+<p>注意目录要求，报告命名 <code class="docutils literal notranslate"><span class="pre">ch6.pdf</span></code>，位于 <code class="docutils literal notranslate"><span class="pre">reports</span></code> 目录下。 后续实验同理。</p>
+<p>报告内容：</p>
 <ul class="simple">
-<li><p>pdf 格式，CI 网站提交，注明姓名学号。</p></li>
-<li><p>完成 ch5 ch6 问答作业。</p></li>
+<li><p>注明姓名学号。</p></li>
+<li><p>完成 ch6 问答作业。</p></li>
 <li><p>[可选，不占分]你对本次实验设计及难度的看法。</p></li>
 </ul>
 </div>
