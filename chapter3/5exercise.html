@@ -138,7 +138,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toctree-l2 current"><a class="current reference internal" href="#">chapter3练习</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#id1">本章任务</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id2">编程作业</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#sys-write">更安全的 sys_write</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#sys-write">sys_write 参数检查</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#stride">stride 调度算法</a></li>
 </ul>
 </li>
@@ -232,11 +232,12 @@ commentsRunWhenDOMLoaded(addUtterances);
   <div class="section" id="chapter3">
 <h1>chapter3练习<a class="headerlink" href="#chapter3" title="永久链接至标题">¶</a></h1>
 <ul class="simple">
-<li><p>本节难度： 第一次变成作业，没那么轻松了</p></li>
+<li><p>本节难度：编程试水</p></li>
 </ul>
 <div class="section" id="id1">
 <h2>本章任务<a class="headerlink" href="#id1" title="永久链接至标题">¶</a></h2>
 <ul class="simple">
+<li><p>注意本节任务最终对应一次 lab 提交。</p></li>
 <li><p>老规矩，先 <cite>make test BASE=1</cite> 看下啥情况。</p></li>
 <li><p>理解框架的多任务加载机制，了解此时用户和内核的大概内存布局。在此基础上，实现本章编程作业(1)更安全的 sys_write。</p></li>
 <li><p>理解框架的调度机制，尤其要搞明白时钟中断的处理机制以及 yield 之后下一个进程的选择。在次基础上，完成本节的编程作业(2)stride 调度算法。</p></li>
@@ -247,7 +248,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <div class="section" id="id2">
 <h2>编程作业<a class="headerlink" href="#id2" title="永久链接至标题">¶</a></h2>
 <div class="section" id="sys-write">
-<h3>更安全的 sys_write<a class="headerlink" href="#sys-write" title="永久链接至标题">¶</a></h3>
+<h3>sys_write 参数检查<a class="headerlink" href="#sys-write" title="永久链接至标题">¶</a></h3>
 <p>lab2 中，我们实现了第一个系统调用 <code class="docutils literal notranslate"><span class="pre">sys_write</span></code>，这使得我们可以在用户态输出信息。但是 os 在提供服务的同时，还有保护 os 本身以及其他用户程序不受错误或者恶意程序破坏的功能。</p>
 <p>由于还没有实现虚拟内存，我们可以在用户程序中指定一个属于其他程序或者内核的地址，并将它以字符串的形式输出，这显然是不合理的，因此我们要对 sys_write 做检查：传入缓冲区是否位于用户所属地址。也就是 <code class="docutils literal notranslate"><span class="pre">[buf,</span> <span class="pre">buf</span> <span class="pre">+</span> <span class="pre">len)</span></code> 这一段地址，是否完全属于对应用户。如果不完全属于，sys_write应该返回 -1。</p>
 <p>实现正确后，代码应该能够通过用户测例 ch2t_write0。你可以使用 <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test</span> <span class="pre">CHAPTER=3_2</span></code> 来测试测试你的实现是否正确，如果正确 ch2t_write1 应该正确推出并输出 “Test write0 OK!”。注意，同时你还要保证 ch2b_write1 也正确执行。</p>
@@ -284,13 +285,15 @@ commentsRunWhenDOMLoaded(addUtterances);
 </ul>
 <p>实现 sys_set_priority 之后，你可以通过　<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test</span> <span class="pre">CHAPTER=3</span></code> 来进行测试。</p>
 <p>完成之后你需要调整框架的代码调度机制，是的可以设置不同进程优先级之后可以按照 stride 算法进行调度。实现正确后，代码应该能够通过用户测例 ch3t_stride*。使用 <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test</span> <span class="pre">CHAPTER=3t</span></code> 来测试测试你的实现是否正确，如果正确,ch3t_stride[x] 最终输出的 priority 和 exitcode 应该大致成正比，由于我们的时间片比较粗糙，qemu 的模拟也不是十分准确，我们最终的 CI 测试会允许最大 30% 的误差。</p>
-<p>实现 tips:
-- 你应该给 proc 结构体加入新的字段来支持优先级。
-- 我们的测例运行时间不很长，不要求处理 stride 的溢出（详见问答作业，当然处理了更好）。
-- 为了减少整数除的误差，BIG_STRIDE 一般需要很大，但测例中的优先级都是 2 的整数次幂，结合第二点，BIG_STRIDE不需要太大，65536 是一个不错的数字。
-- 用户态的 printf 支持了行缓冲，所以如果你想要增加用户程序的输出，记得换行。
-- stride 算法要找到　stride 最小的进程，使用优先级队列是效率不错的办法，但是我们的实验测例很简单，所以效率完全不是问题。事实上，我很推荐使用暴力扫一遍的办法找最小值。
-- 注意设置进程的初始优先级。</p>
+<p>实现 tips:</p>
+<ul class="simple">
+<li><p>你应该给 proc 结构体加入新的字段来支持优先级。</p></li>
+<li><p>我们的测例运行时间不很长，不要求处理 stride 的溢出（详见问答作业，当然处理了更好）。</p></li>
+<li><p>为了减少整数除的误差，BIG_STRIDE 一般需要很大，但测例中的优先级都是 2 的整数次幂，结合第二点，BIG_STRIDE不需要太大，65536 是一个不错的数字。</p></li>
+<li><p>用户态的 printf 支持了行缓冲，所以如果你想要增加用户程序的输出，记得换行。</p></li>
+<li><p>stride 算法要找到　stride 最小的进程，使用优先级队列是效率不错的办法，但是我们的实验测例很简单，所以效率完全不是问题。事实上，我很推荐使用暴力扫一遍的办法找最小值。</p></li>
+<li><p>注意设置进程的初始优先级。</p></li>
+</ul>
 </div>
 </div>
 <div class="section" id="id3">
