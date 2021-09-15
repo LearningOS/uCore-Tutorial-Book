@@ -282,7 +282,50 @@ commentsRunWhenDOMLoaded(addUtterances);
 <span class="p">};</span><span class="w"></span>
 </pre></div>
 </div>
-<p>然后就跳转到了我们早先设定在 trapframe-&gt;kernel_trap 中的地址，也就是 trap.c 之中的 usertrap 函数。这个函数在main的初始化之中已经调用了。</p>
+<p>由于涉及到直接操作寄存器，因此这里只能使用汇编语言来编写。具体可以参考trampoline.S之中的代码:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="p">.</span><span class="n">section</span><span class="w"> </span><span class="p">.</span><span class="n">text</span><span class="w"></span>
+<span class="p">.</span><span class="n">globl</span><span class="w"> </span><span class="n">trampoline</span><span class="w"></span>
+<span class="nl">trampoline</span><span class="p">:</span><span class="w"></span>
+<span class="p">.</span><span class="n">align</span><span class="w"> </span><span class="mi">4</span><span class="w"></span>
+<span class="p">.</span><span class="n">globl</span><span class="w"> </span><span class="n">uservec</span><span class="w"></span>
+<span class="nl">uservec</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="cp">#</span>
+<span class="w">    </span><span class="cp"># trap.c sets stvec to point here, so</span>
+<span class="w">    </span><span class="cp"># traps from user space start here,</span>
+<span class="w">    </span><span class="cp"># in supervisor mode, but with a</span>
+<span class="w">    </span><span class="cp"># user page table.</span>
+<span class="w">    </span><span class="cp">#</span>
+<span class="w">    </span><span class="cp"># sscratch points to where the process&#39;s p-&gt;trapframe is</span>
+<span class="w">    </span><span class="cp"># mapped into user space, at TRAPFRAME.</span>
+<span class="w">    </span><span class="cp">#</span>
+
+<span class="w">    </span><span class="cp"># swap a0 and sscratch</span>
+<span class="w">    </span><span class="cp"># so that a0 is TRAPFRAME</span>
+<span class="w">    </span><span class="n">csrrw</span><span class="w"> </span><span class="n">a0</span><span class="p">,</span><span class="w"> </span><span class="n">sscratch</span><span class="p">,</span><span class="w"> </span><span class="n">a0</span><span class="w"></span>
+
+<span class="w">    </span><span class="cp"># save the user registers in TRAPFRAME</span>
+<span class="w">    </span><span class="n">sd</span><span class="w"> </span><span class="n">ra</span><span class="p">,</span><span class="w"> </span><span class="mi">40</span><span class="p">(</span><span class="n">a0</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">...</span><span class="w"></span>
+<span class="w">    </span><span class="n">sd</span><span class="w"> </span><span class="n">t6</span><span class="p">,</span><span class="w"> </span><span class="mi">280</span><span class="p">(</span><span class="n">a0</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">    </span><span class="cp"># save the user a0 in p-&gt;trapframe-&gt;a0</span>
+<span class="w">    </span><span class="n">csrr</span><span class="w"> </span><span class="n">t0</span><span class="p">,</span><span class="w"> </span><span class="n">sscratch</span><span class="w"></span>
+<span class="w">    </span><span class="n">sd</span><span class="w"> </span><span class="n">t0</span><span class="p">,</span><span class="w"> </span><span class="mi">112</span><span class="p">(</span><span class="n">a0</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">csrr</span><span class="w"> </span><span class="n">t1</span><span class="p">,</span><span class="w"> </span><span class="n">sepc</span><span class="w"></span>
+<span class="w">    </span><span class="n">sd</span><span class="w"> </span><span class="n">t1</span><span class="p">,</span><span class="w"> </span><span class="mi">24</span><span class="p">(</span><span class="n">a0</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">ld</span><span class="w"> </span><span class="n">sp</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p">(</span><span class="n">a0</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="n">ld</span><span class="w"> </span><span class="n">tp</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="p">(</span><span class="n">a0</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="n">ld</span><span class="w"> </span><span class="n">t1</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">(</span><span class="n">a0</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="cp"># csrw satp, t1</span>
+<span class="w">    </span><span class="cp"># sfence.vma zero, zero</span>
+<span class="w">    </span><span class="n">ld</span><span class="w"> </span><span class="n">t0</span><span class="p">,</span><span class="w"> </span><span class="mi">16</span><span class="p">(</span><span class="n">a0</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="n">jr</span><span class="w"> </span><span class="n">t0</span><span class="w"></span>
+</pre></div>
+</div>
+<p>这里需要注意sscratch这个CSR寄存器的作用就是一个cache，它只负责存某一个值，这里它保存的就是TRAPFRAME结构体的位置。csrr和csrrw指令是RV特供的读写CSR寄存器的指令。我们取用它的值的时候实际把原来a0的值和其交换了，因此返回时大家可以看到我们会再交换一次得到原来的a0。这里注释了两句代码大家可以不用管，这是页表相关的处理，我们在ch4会仔细了解它。</p>
+<p>然后我们使用jr t0,就跳转到了我们早先设定在 trapframe-&gt;kernel_trap 中的地址，也就是 trap.c 之中的 usertrap 函数。这个函数在main的初始化之中已经调用了。</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// os/trap.c</span>
 <span class="c1">// set up to take exceptions and traps while in the kernel.</span>
 <span class="kt">void</span><span class="w"> </span><span class="nf">trapinit</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"></span>

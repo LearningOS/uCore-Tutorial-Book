@@ -77,7 +77,7 @@ commentsRunWhenDOMLoaded(addUtterances);
     
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="搜索" href="../search.html" />
-    <link rel="next" title="理解应用程序和执行环境" href="3understand-prog.html" />
+    <link rel="next" title="第二章：批处理系统" href="../chapter2/index.html" />
     <link rel="prev" title="代码框架简述" href="1app-ee-platform.html" /> 
 </head>
 
@@ -142,8 +142,6 @@ commentsRunWhenDOMLoaded(addUtterances);
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="3understand-prog.html">理解应用程序和执行环境</a></li>
-<li class="toctree-l2"><a class="reference internal" href="4exercise.html">chapter1练习</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../chapter2/index.html">第二章：批处理系统</a></li>
@@ -298,15 +296,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <span class="k">$(</span><span class="nv">QEMU</span><span class="k">)</span> <span class="k">$(</span><span class="nv">QEMUOPTS</span><span class="k">)</span>
 </pre></div>
 </div>
-<p>这个就是最关键的地方:make run。我们查看这条指令的结构，它首先执行上面 kernel 所需要的链接以及编译操作得到一个二进制的kernel。之后执行按照QEMUOPTS变量指定的参数启动qemu。QEMUOPTS意义如下：</p>
-<ul class="simple">
-<li><p>nographic: 无图形界面</p></li>
-<li><p>smp 1: 单核 (默认值，可以省略)</p></li>
-<li><p>machine virt: 模拟硬件 RISC-V VirtIO Board</p></li>
-<li><p>bios $(bios): 使用制定 bios，这里指向的是我们提供的 rustsbi 的bin文件。</p></li>
-<li><p>kernel： 使用 elf 格式的 kernel。</p></li>
-</ul>
-<p>因此qemu会按照上述的参数启动，使用我们的rustsbi来进行一系列初始化，并将程序计数器移动至0x80200000并开始执行我们的OS。我们之后所有执行测试都是使用的make run指令。</p>
+<p>这里和前面一致。大家不需要太关心qemu的更多细节，我们涉及它的操作已经在makefile和sbi之中处理了。</p>
 </div>
 <div class="section" id="gdb">
 <h3>gdb 调试<a class="headerlink" href="#gdb" title="永久链接至标题">¶</a></h3>
@@ -349,7 +339,7 @@ commentsRunWhenDOMLoaded(addUtterances);
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="3understand-prog.html" class="btn btn-neutral float-right" title="理解应用程序和执行环境" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../chapter2/index.html" class="btn btn-neutral float-right" title="第二章：批处理系统" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
         <a href="1app-ee-platform.html" class="btn btn-neutral float-left" title="代码框架简述" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
     </div>
 
