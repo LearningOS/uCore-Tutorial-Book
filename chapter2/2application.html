@@ -335,17 +335,15 @@ commentsRunWhenDOMLoaded(addUtterances);
 </pre></div>
 </div>
 <p>该函数完成异常中断处理与返回，包括执行我们写好的syscall。</p>
-<p>从S态返回U态是由 usertrapret 函数实现的。这里设置了返回地址sepc，并调用另外一个 userret 汇编函数来恢复 trapframe 结构体之中的保存的U态执行流数据。最后执行sret指令，从S态回到U态，并将PC移动到sepc指定的位置。</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// os/trap.c</span>
-<span class="c1">// 在这里回到U态继续执行用户程序。</span>
-<span class="kt">void</span><span class="w"> </span><span class="nf">usertrapret</span><span class="p">(</span><span class="k">struct</span> <span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">trapframe</span><span class="p">,</span><span class="w"> </span><span class="n">uint64</span><span class="w"> </span><span class="n">kstack</span><span class="p">)</span><span class="w"></span>
+<p>从S态返回U态是由 usertrapret 函数实现的。这里设置了返回地址sepc，并调用另外一个 userret 汇编函数来恢复 trapframe 结构体之中的保存的U态执行流数据。</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">usertrapret</span><span class="p">(</span><span class="k">struct</span> <span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">trapframe</span><span class="p">,</span><span class="w"> </span><span class="n">uint64</span><span class="w"> </span><span class="n">kstack</span><span class="p">)</span><span class="w"></span>
 <span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">trapframe</span><span class="o">-&gt;</span><span class="n">kernel_satp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">r_satp</span><span class="p">();</span><span class="w"> </span><span class="c1">// 本章无用</span>
+<span class="w">    </span><span class="n">trapframe</span><span class="o">-&gt;</span><span class="n">kernel_satp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">r_satp</span><span class="p">();</span><span class="w"> </span><span class="c1">// kernel page table</span>
 <span class="w">    </span><span class="n">trapframe</span><span class="o">-&gt;</span><span class="n">kernel_sp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">kstack</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">PGSIZE</span><span class="p">;</span><span class="w"> </span><span class="c1">// process&#39;s kernel stack</span>
-<span class="w">    </span><span class="n">trapframe</span><span class="o">-&gt;</span><span class="n">kernel_trap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">uint64</span><span class="p">)</span><span class="n">usertrap</span><span class="p">;</span><span class="w"> </span><span class="c1">// 设置了handler</span>
+<span class="w">    </span><span class="n">trapframe</span><span class="o">-&gt;</span><span class="n">kernel_trap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">uint64</span><span class="p">)</span><span class="n">usertrap</span><span class="p">;</span><span class="w"></span>
 <span class="w">    </span><span class="n">trapframe</span><span class="o">-&gt;</span><span class="n">kernel_hartid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">r_tp</span><span class="p">();</span><span class="w"> </span><span class="c1">// hartid for cpuid()</span>
 
-<span class="w">    </span><span class="n">w_sepc</span><span class="p">(</span><span class="n">trapframe</span><span class="o">-&gt;</span><span class="n">epc</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">w_sepc</span><span class="p">(</span><span class="n">trapframe</span><span class="o">-&gt;</span><span class="n">epc</span><span class="p">);</span><span class="w"> </span><span class="c1">// 设置了sepc寄存器的值。</span>
 <span class="w">    </span><span class="c1">// set up the registers that trampoline.S&#39;s sret will use</span>
 <span class="w">    </span><span class="c1">// to get to user space.</span>
 
@@ -361,7 +359,47 @@ commentsRunWhenDOMLoaded(addUtterances);
 <span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
-<p>这个过程中还有许多细节，大家将在课后习题中慢慢品味。</p>
+<p>同样由于涉及寄存器的恢复，以及未来页表satp寄存器的设置等，userret也必须是一个汇编函数。它基本上就是uservec函数的镜像，将保存在trapframe之中的数据依次读出用于恢复对应的寄存器，实现恢复用户中断前的状态。</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="p">.</span><span class="n">globl</span><span class="w"> </span><span class="n">userret</span><span class="w"></span>
+<span class="nl">userret</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="cp"># userret(TRAPFRAME, pagetable)</span>
+<span class="w">    </span><span class="cp"># switch from kernel to user.</span>
+<span class="w">    </span><span class="cp"># usertrapret() calls here.</span>
+<span class="w">    </span><span class="cp"># a0: TRAPFRAME, in user page table.</span>
+<span class="w">    </span><span class="cp"># a1: user page table, for satp.</span>
+
+<span class="w">    </span><span class="cp"># switch to the user page table.在第四章才会有具体作用。</span>
+<span class="w">    </span><span class="n">csrw</span><span class="w"> </span><span class="n">satp</span><span class="p">,</span><span class="w"> </span><span class="n">a1</span><span class="w"></span>
+<span class="w">    </span><span class="n">sfence</span><span class="p">.</span><span class="n">vma</span><span class="w"> </span><span class="n">zero</span><span class="p">,</span><span class="w"> </span><span class="n">zero</span><span class="w"></span>
+
+<span class="w">    </span><span class="cp"># put the saved user a0 in sscratch, so we</span>
+<span class="w">    </span><span class="cp"># can swap it with our a0 (TRAPFRAME) in the last step.</span>
+<span class="w">    </span><span class="n">ld</span><span class="w"> </span><span class="n">t0</span><span class="p">,</span><span class="w"> </span><span class="mi">112</span><span class="p">(</span><span class="n">a0</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="n">csrw</span><span class="w"> </span><span class="n">sscratch</span><span class="p">,</span><span class="w"> </span><span class="n">t0</span><span class="w"></span>
+
+<span class="w">    </span><span class="cp"># restore all but a0 from TRAPFRAME</span>
+<span class="w">    </span><span class="n">ld</span><span class="w"> </span><span class="n">ra</span><span class="p">,</span><span class="w"> </span><span class="mi">40</span><span class="p">(</span><span class="n">a0</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="n">ld</span><span class="w"> </span><span class="n">sp</span><span class="p">,</span><span class="w"> </span><span class="mi">48</span><span class="p">(</span><span class="n">a0</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="n">ld</span><span class="w"> </span><span class="n">gp</span><span class="p">,</span><span class="w"> </span><span class="mi">56</span><span class="p">(</span><span class="n">a0</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="n">ld</span><span class="w"> </span><span class="n">tp</span><span class="p">,</span><span class="w"> </span><span class="mi">64</span><span class="p">(</span><span class="n">a0</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="n">ld</span><span class="w"> </span><span class="n">t0</span><span class="p">,</span><span class="w"> </span><span class="mi">72</span><span class="p">(</span><span class="n">a0</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="n">ld</span><span class="w"> </span><span class="n">t1</span><span class="p">,</span><span class="w"> </span><span class="mi">80</span><span class="p">(</span><span class="n">a0</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="n">ld</span><span class="w"> </span><span class="n">t2</span><span class="p">,</span><span class="w"> </span><span class="mi">88</span><span class="p">(</span><span class="n">a0</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">...</span><span class="w"></span>
+<span class="w">    </span><span class="n">ld</span><span class="w"> </span><span class="n">t4</span><span class="p">,</span><span class="w"> </span><span class="mi">264</span><span class="p">(</span><span class="n">a0</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="n">ld</span><span class="w"> </span><span class="n">t5</span><span class="p">,</span><span class="w"> </span><span class="mi">272</span><span class="p">(</span><span class="n">a0</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="n">ld</span><span class="w"> </span><span class="n">t6</span><span class="p">,</span><span class="w"> </span><span class="mi">280</span><span class="p">(</span><span class="n">a0</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">    </span><span class="cp"># restore user a0, and save TRAPFRAME in sscratch</span>
+<span class="w">    </span><span class="n">csrrw</span><span class="w"> </span><span class="n">a0</span><span class="p">,</span><span class="w"> </span><span class="n">sscratch</span><span class="p">,</span><span class="w"> </span><span class="n">a0</span><span class="w"></span>
+
+<span class="w">    </span><span class="cp"># return to user mode and user pc.</span>
+<span class="w">    </span><span class="cp"># usertrapret() set up sstatus and sepc.</span>
+<span class="w">    </span><span class="n">sret</span><span class="w"></span>
+</pre></div>
+</div>
+<p>需要注意最后执行的sret指令执行了2个事情：从S态回到U态，并将PC移动到sepc指定的位置，继续执行用户程序。</p>
+<p>这个过程中还有一些细节，大家将在课后习题中慢慢品味。</p>
 </div>
 </div>
 
