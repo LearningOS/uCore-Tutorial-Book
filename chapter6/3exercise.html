@@ -139,11 +139,11 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toctree-l3"><a class="reference internal" href="#id1">本章任务</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id2">编程作业</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id3">进程通信：邮箱</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id4">[挑战]进程通信：共享内存</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id4">[挑战，不占分]进程通信：共享内存</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#id5">问答作业</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id6">报告要求</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id18">报告要求</a></li>
 </ul>
 </li>
 </ul>
@@ -322,7 +322,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </ul>
 </div>
 <div class="section" id="id4">
-<h3>[挑战]进程通信：共享内存<a class="headerlink" href="#id4" title="永久链接至标题">¶</a></h3>
+<h3>[挑战，不占分]进程通信：共享内存<a class="headerlink" href="#id4" title="永久链接至标题">¶</a></h3>
 <p>如果你认为邮箱不够炫酷，可以试试这个。挑战内容，不占分，但你还是必须先实现 mail。</p>
 <p>进程间通信(IPC)对于某些系统和应用其实十分重要，它被称为微内核的 Achilles tendon，同时在 android 应用中也十分常见，为此 android 系统专门设计了一套 binder 机制来加速 IPC 的效率。</p>
 <p>最基础的 IPC 方式大致分两类：</p>
@@ -416,12 +416,42 @@ commentsRunWhenDOMLoaded(addUtterances);
 <ol class="arabic simple">
 <li><p>举出使用 pipe 的一个实际应用的例子。</p></li>
 </ol>
-<p>tips:
-- 想想你平时咋使用 linux terminal 的？
-- 如何使用 cat 和 wc 完成一个文件的行数统计？</p>
+<p>tips:</p>
+<ul class="simple">
+<li><p>想想你平时咋使用 linux terminal 的？</p></li>
+<li><p>如何使用 cat 和 wc 完成一个文件的行数统计？</p></li>
+</ul>
+<ol class="arabic" start="2">
+<li><p>共享内存的测例中有如下C语言片段(伪代码)：</p>
+<blockquote>
+<div><div class="highlight-c notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
 </div>
-<div class="section" id="id6">
-<h2>报告要求<a class="headerlink" href="#id6" title="永久链接至标题">¶</a></h2>
+<p>int main()
+{</p>
+<blockquote>
+<div><p>uint64 <a href="#id6"><span class="problematic" id="id7">*</span></a>A = (void <a href="#id8"><span class="problematic" id="id9">*</span></a>)0x10000000;
+uint64 <a href="#id10"><span class="problematic" id="id11">*</span></a>B = (void <a href="#id12"><span class="problematic" id="id13">*</span></a>)(0x10000000 + 0x1000);
+uint64 len = 0x1000;
+make_shmem(A, B, len); // 会将 [A, A + len) [B, B + len) 这两段虚存映射到同一段物理内存
+<a href="#id14"><span class="problematic" id="id15">*</span></a>A = 0xabab;
+__sync_synchronize();  // zssm？
+if(<a href="#id16"><span class="problematic" id="id17">*</span></a>B != 0xabab) {</p>
+<blockquote>
+<div><p>return ERROR;</p>
+</div></blockquote>
+<p>}
+printf(“OK!”);
+return 0;</p>
+</div></blockquote>
+<p>}</p>
+<p>请自己查阅注释 <code class="docutils literal notranslate"><span class="pre">zssm?</span></code> 对应的这一行代码有什么作用？如果去掉有可能会导致什么错误？为什么？</p>
+</div></blockquote>
+</li>
+</ol>
+</div>
+<div class="section" id="id18">
+<h2>报告要求<a class="headerlink" href="#id18" title="永久链接至标题">¶</a></h2>
 <p>注意目录要求，报告命名 <code class="docutils literal notranslate"><span class="pre">ch6.pdf</span></code>，位于 <code class="docutils literal notranslate"><span class="pre">reports</span></code> 目录下。 后续实验同理。</p>
 <p>报告内容：</p>
 <ul class="simple">

@@ -249,8 +249,10 @@ commentsRunWhenDOMLoaded(addUtterances);
 <p>引入虚存机制后，原来内核的 sys_gettimeofday 函数实现就无效了。请你重写这个函数，恢复其正常功能。</p>
 <p>代码中已经为你预留了函数，你需要填写 <code class="docutils literal notranslate"><span class="pre">YOUR</span> <span class="pre">CODE</span></code> 部分的代码。</p>
 <p>完成后你应该能够正确执行 ch3b_sleep* 对应的测例。通过 <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test</span> <span class="pre">CHAPTER=4_3</span> <span class="pre">BASE=1</span></code> 来测试你的实现。</p>
-<p>tips:
-- 抄框架其他传指针的 syscall 实现。</p>
+<p>tips:</p>
+<ul class="simple">
+<li><p>抄框架其他传指针的 syscall 实现。</p></li>
+</ul>
 </div>
 <div class="section" id="mmap">
 <h3>mmap 匿名映射<a class="headerlink" href="#mmap" title="永久链接至标题">¶</a></h3>
@@ -321,11 +323,13 @@ commentsRunWhenDOMLoaded(addUtterances);
 </li>
 </ul>
 <p>正确实现后，你的 os 应该能够正确运行 ch4_* 对应的一些测试用例，<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test</span> <span class="pre">BASE=0</span></code> 来执行测试。</p>
-<p>tips:
-- 匿名映射的页可以使用 kalloc() 得到。
-- 注意 kalloc 不支持连续物理内存分配，所以你必须把多个页的 mmap 逐页进行映射。
-- 一定要注意 mmap 是的页表项，注意 riscv 页表项的格式与 port 的区别。
-- 你增加 PTE_U 了吗？</p>
+<p>tips:</p>
+<ul class="simple">
+<li><p>匿名映射的页可以使用 kalloc() 得到。</p></li>
+<li><p>注意 kalloc 不支持连续物理内存分配，所以你必须把多个页的 mmap 逐页进行映射。</p></li>
+<li><p>一定要注意 mmap 是的页表项，注意 riscv 页表项的格式与 port 的区别。</p></li>
+<li><p>你增加 PTE_U 了吗？</p></li>
+</ul>
 </div>
 </div>
 <div class="section" id="id4">
