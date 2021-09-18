@@ -357,43 +357,32 @@ commentsRunWhenDOMLoaded(addUtterances);
 <div><ul>
 <li><p>syscall ID: 80</p></li>
 <li><p>功能：获取文件状态。</p></li>
-<li><p>Ｃ接口： <code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">fstat(int</span> <span class="pre">fd,</span> <span class="pre">struct</span> <span class="pre">Stat*</span> <span class="pre">st)</span></code></p></li>
-<li><p>Rust 接口： <code class="docutils literal notranslate"><span class="pre">fn</span> <span class="pre">fstat(fd:</span> <span class="pre">i32,</span> <span class="pre">st:</span> <span class="pre">*mut</span> <span class="pre">Stat)</span> <span class="pre">-&gt;</span> <span class="pre">i32</span></code></p></li>
+<li><p>接口： <code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">fstat(int</span> <span class="pre">fd,</span> <span class="pre">struct</span> <span class="pre">Stat*</span> <span class="pre">st)</span></code></p></li>
 <li><dl>
 <dt>参数：</dt><dd><ul class="simple">
 <li><p>fd: 文件描述符</p></li>
 <li><p>st: 文件状态结构体</p></li>
 </ul>
-<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="cp">#[repr(C)]</span><span class="w"></span>
-<span class="cp">#[derive(Debug)]</span><span class="w"></span>
-<span class="k">pub</span><span class="w"> </span><span class="k">struct</span> <span class="nc">Stat</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="sd">/// 文件所在磁盘驱动器号</span>
-<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="n">dev</span>: <span class="kt">u64</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="sd">/// inode 文件所在 inode 编号</span>
-<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="n">ino</span>: <span class="kt">u64</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="sd">/// 文件类型</span>
-<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="n">mode</span>: <span class="nc">StatMode</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="sd">/// 硬链接数量，初始为1</span>
-<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="n">nlink</span>: <span class="kt">u32</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="sd">/// 无需考虑，为了兼容性设计</span>
-<span class="w">    </span><span class="n">pad</span>: <span class="p">[</span><span class="kt">u64</span><span class="p">;</span><span class="w"> </span><span class="mi">7</span><span class="p">],</span><span class="w"></span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span> <span class="nc">Stat</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">uint64</span><span class="w"> </span><span class="n">dev</span><span class="p">,</span><span class="w">     </span><span class="c1">// 文件所在磁盘驱动器号</span>
+<span class="w">    </span><span class="n">uint64</span><span class="w"> </span><span class="n">ino</span><span class="p">,</span><span class="w">     </span><span class="c1">// inode 文件所在 inode 编号</span>
+<span class="w">    </span><span class="n">uint32</span><span class="w"> </span><span class="n">mode</span><span class="p">,</span><span class="w">    </span><span class="c1">// 文件类型</span>
+<span class="w">    </span><span class="n">uint32</span><span class="w"> </span><span class="n">nlink</span><span class="p">,</span><span class="w">   </span><span class="c1">// 硬链接数量，初始为1</span>
+<span class="w">    </span><span class="n">uint64</span><span class="w"> </span><span class="n">pad</span><span class="p">[</span><span class="mi">7</span><span class="p">],</span><span class="w">  </span><span class="c1">// 无需考虑，为了兼容性设计</span>
 <span class="p">}</span><span class="w"></span>
 
-<span class="sd">/// StatMode 定义：</span>
-<span class="n">bitflags</span><span class="o">!</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">struct</span> <span class="nc">StatMode</span>: <span class="kt">u32</span> <span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="n">NULL</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="sd">/// directory</span>
-<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="n">DIR</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="mo">0o040000</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="sd">/// ordinary regular file</span>
-<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="n">FILE</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mo">0o100000</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="c1">// 文件类型只需要考虑:</span>
+<span class="cp">#define DIR 0x040000                </span><span class="c1">// directory</span>
+<span class="cp">#define FILE 0x100000               </span><span class="c1">// ordinary regular file</span>
 </pre></div>
 </div>
 </dd>
 </dl>
 </li>
+<li><p>返回值：如果出现了错误则返回 -1，否则返回 0。</p></li>
+<li><p>可能的错误
+* fd 无效。
+* st 地址非法。</p></li>
 </ul>
 </div></blockquote>
 <p>正确实现后，你的 os 应该能够正确运行 ch7_file* 对应的测试用例，在 shell 中执行 ch7_usertest 来执行测试。</p>
