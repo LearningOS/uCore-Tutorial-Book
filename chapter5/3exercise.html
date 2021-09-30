@@ -295,7 +295,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <p>如果 fork() 之后一定主程序先运行结果如何？如果 fork() 之后一定 child 先运行结果如何？</p>
 </div></blockquote>
 </li>
-<li><p>请分析如下程序运行后最终输出 <cite>A</cite> 的数量(已知 <code class="docutils literal notranslate"><span class="pre">||</span></code> 的优先级比 <code class="docutils literal notranslate"><span class="pre">&amp;&amp;</span></code> 高)：</p>
+<li><p>请分析如下程序运行后最终输出 <cite>A</cite> 的数量(已知 <code class="docutils literal notranslate"><span class="pre">&amp;&amp;</span></code> 的优先级比 <code class="docutils literal notranslate"><span class="pre">||</span></code> 高)：</p>
 <blockquote>
 <div><div class="highlight-c notranslate"><div class="highlight"><pre><span></span>int main() {
     fork() &amp;&amp; fork() &amp;&amp; fork() || fork() &amp;&amp; fork() || fork() &amp;&amp; fork();
