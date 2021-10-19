@@ -64,7 +64,7 @@ chapter7练习
         .. code-block:: c
 
             struct Stat {
-                uint64 dev,     // 文件所在磁盘驱动器号
+                uint64 dev,     // 文件所在磁盘驱动号，该实现写死为 0 即可。
                 uint64 ino,     // inode 文件所在 inode 编号
                 uint32 mode,    // 文件类型
                 uint32 nlink,   // 硬链接数量，初始为1

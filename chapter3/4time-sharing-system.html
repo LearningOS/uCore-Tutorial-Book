@@ -426,25 +426,24 @@ commentsRunWhenDOMLoaded(addUtterances);
 </div>
 <p>我们只需在 <code class="docutils literal notranslate"><span class="pre">usertrap</span></code> 函数下新增一个分支，当发现触发了一个 S 特权级时钟中断的时候，首先重新设置一个 10ms 的计时器，然后调用上一小节提到的 <code class="docutils literal notranslate"><span class="pre">yield</span></code> 函数暂停当前应用并切换到下一个。</p>
 <p>为了避免 S 特权级时钟中断被屏蔽，我们需要在执行第一个应用之前进行一些初始化设置：</p>
-<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="c1">// os/src/main.rs</span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="c1">// os/main.c</span>
 <span class="linenos"> 2</span>
-<span class="linenos"> 3</span><span class="cp">#[no_mangle]</span><span class="w"></span>
-<span class="linenos"> 4</span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span> <span class="nf">rust_main</span><span class="p">()</span><span class="w"> </span>-&gt; <span class="o">!</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="linenos"> 5</span><span class="w">    </span><span class="c1">// ...</span>
-<span class="linenos"> 6</span><span class="w">    </span><span class="n">timer_init</span><span class="p">();</span><span class="w"></span>
-<span class="linenos"> 7</span><span class="w">    </span><span class="c1">// ...</span>
-<span class="linenos"> 8</span><span class="p">}</span><span class="w"></span>
-<span class="hll"><span class="linenos"> 9</span>
-</span><span class="hll"><span class="linenos">10</span><span class="c1">// os/trap.c</span>
-</span><span class="linenos">11</span>
-<span class="linenos">12</span><span class="sd">/// Enable timer interrupt</span>
-<span class="linenos">13</span><span class="n">void</span><span class="w"> </span><span class="n">timer_init</span><span class="p">()</span><span class="w"></span>
-<span class="linenos">14</span><span class="p">{</span><span class="w"></span>
-<span class="linenos">15</span><span class="w">    </span><span class="c1">// 设置 ``sie.stie`` 使得 S 特权级时钟中断不会被屏蔽；</span>
-<span class="linenos">16</span><span class="w">    </span><span class="n">w_sie</span><span class="p">(</span><span class="n">r_sie</span><span class="p">()</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">SIE_STIE</span><span class="p">);</span><span class="w"></span>
-<span class="linenos">17</span><span class="w">    </span><span class="c1">// 设置第一个 10ms 的计时器。</span>
-<span class="linenos">18</span><span class="w">    </span><span class="n">set_next_timer</span><span class="p">();</span><span class="w"></span>
-<span class="linenos">19</span><span class="p">}</span><span class="w"></span>
+<span class="linenos"> 3</span><span class="kt">void</span><span class="w"> </span><span class="n">main</span><span class="p">{</span><span class="w"></span>
+<span class="linenos"> 4</span><span class="w">    </span><span class="c1">// ...</span>
+<span class="linenos"> 5</span><span class="w">    </span><span class="n">timer_init</span><span class="p">();</span><span class="w"></span>
+<span class="linenos"> 6</span><span class="w">    </span><span class="c1">// ...</span>
+<span class="linenos"> 7</span><span class="p">}</span><span class="w"></span>
+<span class="linenos"> 8</span>
+<span class="hll"><span class="linenos"> 9</span><span class="c1">// os/trap.c</span>
+</span><span class="hll"><span class="linenos">10</span>
+</span><span class="linenos">11</span><span class="c1">/// Enable timer interrupt</span>
+<span class="linenos">12</span><span class="kt">void</span><span class="w"> </span><span class="n">timer_init</span><span class="p">()</span><span class="w"></span>
+<span class="linenos">13</span><span class="p">{</span><span class="w"></span>
+<span class="linenos">14</span><span class="w">    </span><span class="c1">// 设置 ``sie.stie`` 使得 S 特权级时钟中断不会被屏蔽；</span>
+<span class="linenos">15</span><span class="w">    </span><span class="n">w_sie</span><span class="p">(</span><span class="n">r_sie</span><span class="p">()</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">SIE_STIE</span><span class="p">);</span><span class="w"></span>
+<span class="linenos">16</span><span class="w">    </span><span class="c1">// 设置第一个 10ms 的计时器。</span>
+<span class="linenos">17</span><span class="w">    </span><span class="n">set_next_timer</span><span class="p">();</span><span class="w"></span>
+<span class="linenos">18</span><span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p>这样，当一个应用运行了 10ms 之后，一个 S 特权级时钟中断就会被触发。由于应用运行在 U 特权级，且 <code class="docutils literal notranslate"><span class="pre">sie</span></code> 寄存器被正确设置，该中断不会被屏蔽，而是 Trap 到 S 特权级内的我们的 <code class="docutils literal notranslate"><span class="pre">trap_handler</span></code> 里面进行处理，并顺利切换到下一个应用。这便是我们所期望的抢占式调度机制。</p>
